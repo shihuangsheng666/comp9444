@@ -20,11 +20,10 @@ import nltk
 from nltk.translate import meteor_score
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 import matplotlib.pyplot as plt
-
-# Ensure the necessary NLTK data is downloaded
+import string
+import pandas as pd
+import nltk
 nltk.download('wordnet')
-
-# decrease data size and clean txt data
 def prepare_data(all_data, part):
     table = str.maketrans('','',string.punctuation)  #remove all punctuation 
     captions = all_data['captions']
@@ -53,10 +52,11 @@ def prepare_data(all_data, part):
     correspond_embbeding = []
     for i in range(len(clean_captions)):
         correspond_embbeding.append(all_data['clip_embedding'][clean_captions[i]['clip_embedding']])
-    clean_embbeding = {i: value for i, value in enumerate(correspond_embbeding)}    
-    all_data_clean = {'captions':clean_captions, 'clip_embedding':clean_embbeding}
-    return all_data_clean
+        clean_captions[i]['clip_embedding'] = i
+    #clean_embbeding = {i: value for i, value in enumerate(correspond_embbeding)}  
     
+    all_data_clean = {'captions':clean_captions, 'clip_embedding':correspond_embbeding}
+    return all_data_clean
 class MappingType(Enum):
     MLP = 'mlp'
     Transformer = 'transformer'
@@ -76,7 +76,7 @@ class ClipCocoDataset(Dataset):
         elif padding < 0:
             tokens = tokens[:self.max_seq_len]
             self.captions_tokens[item] = tokens
-        mask = tokens.ge(0)  # mask is zero where we out of sequence
+        mask = tokens.ge(0)  # mask is where we out of sequence
         tokens[~mask] = 0
         mask = mask.float()
         mask = torch.cat((torch.ones(self.prefix_length), mask), dim=0)  # adding prefix mask
@@ -97,11 +97,13 @@ class ClipCocoDataset(Dataset):
         self.normalize_prefix = normalize_prefix
         with open(data_path, 'rb') as f:
             all_data = pickle.load(f)
-        all_data = prepare_data(all_data, 5)            #process data here
-        print("Data size is %0d" % len(all_data["clip_embedding"]))
+        clean_all_data = prepare_data(all_data, 50)
+        print("Data size is %0d" % len(clean_all_data["clip_embedding"]))
         sys.stdout.flush()
-        self.prefixes = all_data["clip_embedding"]
-        captions_raw = all_data["captions"]
+        self.prefixes = clean_all_data["clip_embedding"]
+        
+        captions_raw = clean_all_data["captions"]
+        
         self.image_ids = [caption["image_id"] for caption in captions_raw]
         self.captions = [caption['caption'] for caption in captions_raw]
         if os.path.isfile(f"{data_path[:-4]}_tokens.pkl"):
@@ -360,11 +362,9 @@ def compute_metrics(references, hypotheses, val_loss):
     return bleu_score, rouge_l, val_loss, perplexity, meteor
 
 
+def train(dataset, model, args, lr=2e-5, warmup_steps=5000, output_dir=".", output_prefix="", val_dataloader=None, tokenizer=None):
+    # ... rest of your code ...
 
-
-
-def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args, val_dataloader, tokenizer,
-          lr: float = 2e-5, warmup_steps: int = 5000, output_dir: str = ".", output_prefix: str = ""):
 
     device = torch.device('cuda:0')
     batch_size = args.bs
@@ -417,7 +417,7 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args, val_dataloade
 
         progress.close()
 
-        Begin validation evaluation
+        #Begin validation evaluation
         model.eval()
         val_loss = 0
         references = []
@@ -497,13 +497,14 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args, val_dataloade
     return model
 
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', default='./data/coco/oscar_split_train.pkl')
     parser.add_argument('--val_data', default='./data/coco/oscar_split_ViT-B_32_val.pkl')
     parser.add_argument('--out_dir', default='./checkpoints')
     parser.add_argument('--prefix', default='coco_prefix', help='prefix for saved filenames')
-    parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--save_every', type=int, default=1)
     parser.add_argument('--prefix_length', type=int, default=10)
     parser.add_argument('--prefix_length_clip', type=int, default=10)
@@ -531,7 +532,9 @@ def main():
     val_dataset = ClipCocoDataset(val_data_file, args.prefix_length, normalize_prefix=args.normalize_prefix)
     val_dataloader = DataLoader(val_dataset, batch_size=args.bs, shuffle=False, drop_last=False)
     tokenizer = AutoTokenizer.from_pretrained('gpt2') 
-    train(dataset, model, args, val_dataloader, tokenizer, output_dir=args.out_dir, output_prefix=args.prefix)
+    train(dataset, model, args, lr=2e-5, warmup_steps=5000, output_dir=args.out_dir, output_prefix=args.prefix, val_dataloader=val_dataloader, tokenizer=tokenizer)
+
+
 
 
 if __name__ == '__main__':
