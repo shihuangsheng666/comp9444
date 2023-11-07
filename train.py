@@ -24,7 +24,7 @@ import string
 import pandas as pd
 import nltk
 nltk.download('wordnet')
-def prepare_data(all_data, part):
+def prepare_data(all_data, part, clean = True):
     table = str.maketrans('','',string.punctuation)  #remove all punctuation 
     captions = all_data['captions']
     captions = pd.DataFrame(captions)
@@ -35,19 +35,20 @@ def prepare_data(all_data, part):
     #print(sampled_captions_df)
     clean_captions = sampled_captions_df.to_dict(orient='records')
     #print(clean_captions[0])
-    for j in range(len(clean_captions)):        
-        sentence = clean_captions[j]['caption'].replace("-"," ")
-        # remove punctuation
-        sentence = sentence.translate(table)
-        split_sentence = sentence.split()
-        # convert all to lower case
-        split_sentence = [wrd.lower() for wrd in split_sentence]
-        # remove 's and a that does not help with training
-        split_sentence = [wrd for wrd in split_sentence if(len(wrd)>1)]
-        # remove all string like numbers
-        split_sentence = [wrd for wrd in split_sentence if(wrd.isalpha())]
-        sentence = ' '.join(split_sentence)
-        clean_captions[j]['caption'] = sentence
+    if clean:
+      for j in range(len(clean_captions)):        
+          sentence = clean_captions[j]['caption'].replace("-"," ")
+          # remove punctuation
+          sentence = sentence.translate(table)
+          split_sentence = sentence.split()
+          # convert all to lower case
+          split_sentence = [wrd.lower() for wrd in split_sentence]
+          # remove 's and a that does not help with training
+          split_sentence = [wrd for wrd in split_sentence if(len(wrd)>1)]
+          # remove all string like numbers
+          split_sentence = [wrd for wrd in split_sentence if(wrd.isalpha())]
+          sentence = ' '.join(split_sentence)
+          clean_captions[j]['caption'] = sentence
     #print(clean_captions[0])
     correspond_embbeding = []
     for i in range(len(clean_captions)):
@@ -97,7 +98,7 @@ class ClipCocoDataset(Dataset):
         self.normalize_prefix = normalize_prefix
         with open(data_path, 'rb') as f:
             all_data = pickle.load(f)
-        clean_all_data = prepare_data(all_data, 50)
+        clean_all_data = prepare_data(all_data, 10, False)
         print("Data size is %0d" % len(clean_all_data["clip_embedding"]))
         sys.stdout.flush()
         self.prefixes = clean_all_data["clip_embedding"]
@@ -504,7 +505,7 @@ def main():
     parser.add_argument('--val_data', default='./data/coco/oscar_split_ViT-B_32_val.pkl')
     parser.add_argument('--out_dir', default='./checkpoints')
     parser.add_argument('--prefix', default='coco_prefix', help='prefix for saved filenames')
-    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--save_every', type=int, default=1)
     parser.add_argument('--prefix_length', type=int, default=10)
     parser.add_argument('--prefix_length_clip', type=int, default=10)
