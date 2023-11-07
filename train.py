@@ -99,11 +99,11 @@ class ClipCocoDataset(Dataset):
         with open(data_path, 'rb') as f:
             all_data = pickle.load(f)
         # clean_all_data = prepare_data(all_data, 10, False)
-        print("Data size is %0d" % len(clean_all_data["clip_embedding"]))
+        print("Data size is %0d" % len(all_data["clip_embedding"]))
         sys.stdout.flush()
-        self.prefixes = clean_all_data["clip_embedding"]
+        self.prefixes = all_data["clip_embedding"]
         
-        captions_raw = clean_all_data["captions"]
+        captions_raw = all_data["captions"]
         
         self.image_ids = [caption["image_id"] for caption in captions_raw]
         self.captions = [caption['caption'] for caption in captions_raw]
