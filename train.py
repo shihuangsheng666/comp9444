@@ -24,40 +24,40 @@ import string
 import pandas as pd
 import nltk
 nltk.download('wordnet')
-def prepare_data(all_data, part, clean = True):
-    table = str.maketrans('','',string.punctuation)  #remove all punctuation 
-    captions = all_data['captions']
-    captions = pd.DataFrame(captions)
-    captions = captions.sort_values(by ='image_id')  
-    num_to_sample = len(captions['image_id'].unique())//part   
-    sampled_image_ids = captions['image_id'].drop_duplicates().sample(n=num_to_sample, random_state=11)
-    sampled_captions_df = captions[captions['image_id'].isin(sampled_image_ids)]
-    #print(sampled_captions_df)
-    clean_captions = sampled_captions_df.to_dict(orient='records')
-    #print(clean_captions[0])
-    if clean:
-      for j in range(len(clean_captions)):        
-          sentence = clean_captions[j]['caption'].replace("-"," ")
-          # remove punctuation
-          sentence = sentence.translate(table)
-          split_sentence = sentence.split()
-          # convert all to lower case
-          split_sentence = [wrd.lower() for wrd in split_sentence]
-          # remove 's and a that does not help with training
-          split_sentence = [wrd for wrd in split_sentence if(len(wrd)>1)]
-          # remove all string like numbers
-          split_sentence = [wrd for wrd in split_sentence if(wrd.isalpha())]
-          sentence = ' '.join(split_sentence)
-          clean_captions[j]['caption'] = sentence
-    #print(clean_captions[0])
-    correspond_embbeding = []
-    for i in range(len(clean_captions)):
-        correspond_embbeding.append(all_data['clip_embedding'][clean_captions[i]['clip_embedding']])
-        clean_captions[i]['clip_embedding'] = i
-    #clean_embbeding = {i: value for i, value in enumerate(correspond_embbeding)}  
+# def prepare_data(all_data, part, clean = True):
+#     table = str.maketrans('','',string.punctuation)  #remove all punctuation 
+#     captions = all_data['captions']
+#     captions = pd.DataFrame(captions)
+#     captions = captions.sort_values(by ='image_id')  
+#     num_to_sample = len(captions['image_id'].unique())//part   
+#     sampled_image_ids = captions['image_id'].drop_duplicates().sample(n=num_to_sample, random_state=11)
+#     sampled_captions_df = captions[captions['image_id'].isin(sampled_image_ids)]
+#     #print(sampled_captions_df)
+#     clean_captions = sampled_captions_df.to_dict(orient='records')
+#     #print(clean_captions[0])
+#     if clean:
+#       for j in range(len(clean_captions)):        
+#           sentence = clean_captions[j]['caption'].replace("-"," ")
+#           # remove punctuation
+#           sentence = sentence.translate(table)
+#           split_sentence = sentence.split()
+#           # convert all to lower case
+#           split_sentence = [wrd.lower() for wrd in split_sentence]
+#           # remove 's and a that does not help with training
+#           split_sentence = [wrd for wrd in split_sentence if(len(wrd)>1)]
+#           # remove all string like numbers
+#           split_sentence = [wrd for wrd in split_sentence if(wrd.isalpha())]
+#           sentence = ' '.join(split_sentence)
+#           clean_captions[j]['caption'] = sentence
+#     #print(clean_captions[0])
+#     correspond_embbeding = []
+#     for i in range(len(clean_captions)):
+#         correspond_embbeding.append(all_data['clip_embedding'][clean_captions[i]['clip_embedding']])
+#         clean_captions[i]['clip_embedding'] = i
+#     #clean_embbeding = {i: value for i, value in enumerate(correspond_embbeding)}  
     
-    all_data_clean = {'captions':clean_captions, 'clip_embedding':correspond_embbeding}
-    return all_data_clean
+#     all_data_clean = {'captions':clean_captions, 'clip_embedding':correspond_embbeding}
+#     return all_data_clean
 class MappingType(Enum):
     MLP = 'mlp'
     Transformer = 'transformer'
@@ -98,7 +98,7 @@ class ClipCocoDataset(Dataset):
         self.normalize_prefix = normalize_prefix
         with open(data_path, 'rb') as f:
             all_data = pickle.load(f)
-        clean_all_data = prepare_data(all_data, 10, False)
+        # clean_all_data = prepare_data(all_data, 10, False)
         print("Data size is %0d" % len(clean_all_data["clip_embedding"]))
         sys.stdout.flush()
         self.prefixes = clean_all_data["clip_embedding"]
