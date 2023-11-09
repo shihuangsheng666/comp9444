@@ -87,9 +87,8 @@ def main(clip_model_type: str, is_val: bool):
     for i, d in enumerate(tqdm(annotations)):
         img_id = d["image_id"]
         if not is_val:
-          filename = f"./data/coco/train2017/{int(img_id):012d}.jpg"
+            filename = f"./data/coco/train2017/{int(img_id):012d}.jpg"
         else:
-          if not os.path.isfile(filename):
             filename = f"./data/coco/val2017/{int(img_id):012d}.jpg"
         image = io.imread(filename)
         image = preprocess(Image.fromarray(image)).unsqueeze(0).to(device)
