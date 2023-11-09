@@ -60,10 +60,7 @@ def _transform(n_px):
     ])
 def main(clip_model_type: str, is_val: bool):
     start_time = time.time()  # Record the start time
-    if torch.cuda.is_available():
-        device = torch.device('cuda:0')
-    else:  
-        device = torch.device('cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     clip_model_name = clip_model_type.replace('/', '_')
     if not is_val: 
       out_path = f"./data/coco/oscar_split_{clip_model_name}_train.pkl"
