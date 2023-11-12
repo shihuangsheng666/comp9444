@@ -38,6 +38,25 @@ def load_data(ann_list, part=5,clean = True):
         return clean_captions  
     return clean_captions
 from torchvision.transforms import Compose, Resize, RandomHorizontalFlip, RandomVerticalFlip, ColorJitter, CenterCrop, ToTensor, Normalize
+import cv2
+
+class CLAHETransform(object):
+    def __init__(self, clip_limit=2.0, tile_grid_size=(8, 8)):
+        self.clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
+
+    def __call__(self, img):
+        img = np.array(img)  # Convert PIL image to numpy array
+        if len(img.shape) == 2:  # If image is grayscale
+            img = self.clahe.apply(img)
+        else:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+            l, a, b = cv2.split(img)
+            l = self.clahe.apply(l)
+            img = cv2.merge((l, a, b))
+            img = cv2.cvtColor(img, cv2.COLOR_LAB2RGB)
+        img = Image.fromarray(img)  # Convert numpy array back to PIL image
+        return img
+
 try:
     from torchvision.transforms import InterpolationMode
     BICUBIC = InterpolationMode.BICUBIC
@@ -52,7 +71,7 @@ def _transform(n_px):
         Resize(n_px, interpolation=BICUBIC),
         RandomHorizontalFlip(0.2),
         RandomVerticalFlip(0.1),
-        ColorJitter(0.5,0.5,0.5),
+        CLAHETransform(clip_limit=2.0, tile_grid_size=(8, 8)),
         CenterCrop(n_px),
         _convert_image_to_rgb,
         ToTensor(),
