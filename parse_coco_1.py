@@ -45,8 +45,8 @@ class CLAHETransform(object):
         self.clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
 
     def __call__(self, img):
-        img = np.array(img)  # Convert PIL image to numpy array
-        if len(img.shape) == 2:  # If image is grayscale
+        img = np.array(img)  
+        if len(img.shape) == 2:  
             img = self.clahe.apply(img)
         else:
             img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
@@ -54,7 +54,7 @@ class CLAHETransform(object):
             l = self.clahe.apply(l)
             img = cv2.merge((l, a, b))
             img = cv2.cvtColor(img, cv2.COLOR_LAB2RGB)
-        img = Image.fromarray(img)  # Convert numpy array back to PIL image
+        img = Image.fromarray(img)  
         return img
 
 try:
