@@ -530,7 +530,8 @@ def main():
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
         print("Train both prefix and GPT")
         sys.stdout.flush()
-    model.load_state_dict(torch.load(args.model_path, map_location=torch.device('cpu')), strict=False)
+    if os.path.isfile(args.model_path):
+        model.load_state_dict(torch.load(args.model_path, map_location=torch.device('cpu')), strict=False)
     val_data_file = args.val_data
     val_dataset = ClipCocoDataset(val_data_file, args.prefix_length, normalize_prefix=args.normalize_prefix)
     val_dataloader = DataLoader(val_dataset, batch_size=args.bs, shuffle=False, drop_last=False)
