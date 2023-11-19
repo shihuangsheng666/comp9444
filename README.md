@@ -53,19 +53,19 @@ content
 !mkdir -p data/coco/annotations
 
 # Download train_captions to data/coco/annotations.
-# (Assuming the file is publicly accessible, replace 'train_captions_url' with the actual URL)
+
 !wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip -O data/coco/annotations/annotations_trainval2017.zip
 !unzip data/coco/annotations/annotations_trainval2017.zip -d data/coco/annotations/
 
 # Download and unzip training and validation images
-# (Replace 'training_images_url' and 'validation_images_url' with the actual URLs)
+
 !wget http://images.cocodataset.org/zips/train2017.zip -O data/coco/training_images.zip
 !wget http://images.cocodataset.org/zips/val2017.zip -O data/coco/validation_images.zip
 !unzip data/coco/training_images.zip -d data/coco/
 !unzip data/coco/validation_images.zip -d data/coco/
 
 
-##4.replace the content of the original train.py and parse_coco.py in CLIP_prefix_caption folder with our own train.py and parse_coco.py in .zip:
+## 4.replace the content of the original train.py and parse_coco.py in CLIP_prefix_caption folder with our own train.py and parse_coco.py in .zip:
 
 .zip tree structure:
 
@@ -88,7 +88,7 @@ train.py
 #Here parse_coco_1.py is paired with train.py for running all image models(RN50、RN101、RN50x4、Vit).Similarly, modified_res50_clip is compatible with train.pyparse_coco_CBAM_res50.py for just RN50 with cbam， but other models with cbam are not included here.
 
 
-##5. run the parse_coco.py and train.py in sequence:
+## 5. run the parse_coco.py and train.py in sequence:
 
 #this is parse training data, RN101 RN50x4 Vit-B/32  model selected as needed, but Vit-B/32 is used for DAT not cbam, and it is incompatible with cbam
 
