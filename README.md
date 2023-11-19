@@ -104,7 +104,7 @@ train.py
 !python /content/CLIP_prefix_caption/train.py --data /content/data/coco/oscar_split_RN50_train.pkl --val_data /content/data/coco/oscar_split_RN50_val.pkl --out_dir /content/coco_train/
 
 
-##6. collect data and plot them in any way as you like.
+## 6. collect data and plot them in any way as you like.
 
 
 
