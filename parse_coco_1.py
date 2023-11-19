@@ -10,8 +10,8 @@ import argparse
 import time  # Import the time module to measure elapsed time
 import pandas as pd
 import string
-
-def load_data(ann_list, part=5,clean = True):
+import numpy as np
+def load_data(ann_list, part=100,clean = True):
 
     annotations = pd.DataFrame(ann_list)
     annotations = annotations.sort_values(by ='image_id')  
